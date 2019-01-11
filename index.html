@@ -36,13 +36,23 @@
       this.load.image('bg', 'img/frame.png');
       this.load.image('prize', 'img/prize_window.png');
       this.load.image('spin', 'img/btn_spin.png');
+      this.load.image('line1', 'img/line_1.png');
+      this.load.image('line4', 'img/line_4.png');
+      this.load.image('line5', 'img/line_5.png');
       
     }
 
     function create ()
     {
+      var lines = [];
+      var centerX = gameWidth / 2;
+
       var bg = this.add.image(0, 0, 'bg');
       bg.setPosition(gameWidth / 2, bg.height / 2);
+
+      var frameContentMargin = 25;
+      var frameContentSize = bg.height - frameContentMargin * 2;
+      var frameContentSizeFix = frameContentSize / 3 / 2;
 
       this.add.image(100, gameHeight - 40, 'prize');
       var prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
@@ -53,16 +63,36 @@
         align: 'center'
       }).setOrigin(0.5);
       setButtonStyle(this.add.image(gameWidth - 100, gameHeight - 40, 'spin'))
+        .on('pointerdown', () => {
+          lines.forEach(function (line){
+            line.destroy();
+          });
+          lines = [];
+        })
         .on('pointerup', () => {
           var results = wrapper.spin(); 
-          // console.log(results);
-          // console.log(results.prizes);
-          var prizeTotal = 0;
-          results.prizes.forEach(function (prize) {
-            prizeTotal += prize.winnings;
-          });
-          // console.log(prizeTotal);
-          prizeText.setText(baseText + prizeTotal.toString());
+          console.log(results);
+          results.prizes.forEach((function (prize) {
+            console.log(prize.lineId);
+            switch(prize.lineId){
+              case 0:
+                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
+                break;
+              case 1:
+                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
+                break;
+              case 2:
+                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
+                break;
+              case 3:
+                lines.push(this.add.image(centerX, bg.height / 2, 'line4'));
+                break;
+              case 4:
+                lines.push(this.add.image(centerX, bg.height / 2, 'line5'));
+                break;
+            }
+          }).bind(this));
+          prizeText.setText(baseText + results.winnings.toString());
          });
     }
     function setButtonStyle(button){
