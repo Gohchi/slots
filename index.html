@@ -32,6 +32,9 @@
       this.load.setBaseURL('http://localhost:8080');
 
       this.load.image('bg', 'img/frame.png');
+      this.load.image('prize', 'img/prize_window.png');
+      this.load.image('spin', 'img/btn_spin.png');
+      
     }
 
     function create ()
@@ -39,6 +42,17 @@
       var bg = this.add.image(0, 0, 'bg');
       // console.log(bg);
       bg.setPosition(gameWidth / 2, bg.height / 2);
+
+      this.add.image(100, gameHeight - 40, 'prize');
+      setButtonStyle(this.add.image(gameWidth - 100, gameHeight - 40, 'spin'));
+    }
+    function setButtonStyle(button){
+      button
+        .setInteractive()
+        .on('pointerover', () => { button.tint = 0xdddddd; })
+        .on('pointerout', () => { button.tint = 0xffffff; })
+        .on('pointerdown', () => { button.tint = 0x888888; })
+        .on('pointerup', () => { button.tint = 0xffffff; });
     }
     </script>
 
