@@ -9,7 +9,9 @@
     <script>
     var gameWidth = 490;
     var gameHeight = 570;
-    var baseText = 'WIN: $'
+    var baseText = 'WIN: $';
+    var xOutsideOffset = -500;
+    var yOutsideOffset = -30;
     
     var config = {
         type: Phaser.AUTO,
@@ -40,6 +42,11 @@
       this.load.image('line4', 'img/line_4.png');
       this.load.image('line5', 'img/line_5.png');
       
+      this.load.image('a', 'img/symbols/sym_a.png');
+      this.load.image('b', 'img/symbols/sym_b.png');
+      this.load.image('c', 'img/symbols/sym_c.png');
+      this.load.image('d', 'img/symbols/sym_d.png');
+      this.load.image('e', 'img/symbols/sym_e.png');
     }
 
     function create ()
@@ -53,6 +60,18 @@
       var frameContentMargin = 25;
       var frameContentSize = bg.height - frameContentMargin * 2;
       var frameContentSizeFix = frameContentSize / 3 / 2;
+
+      var reelInfoList = wrapper.getReels();
+      var reels = [[], [], []];
+      for (var i in reelInfoList) {
+        var i = parseInt(i);
+        reelInfoList[i].forEach((function (reelInfo, l) {
+          reels[i].push(this.add.image(xOutsideOffset + 140 * (i + 1) - 35, -25 + 140 * (l + 1) - 35, reelInfo));
+        }).bind(this));
+      };
+      // console.log(reels);
+      
+      this.cameras.add(30, 30, 430, 430).setScroll(-470, 0);
 
       this.add.image(100, gameHeight - 40, 'prize');
       var prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
@@ -76,19 +95,19 @@
             console.log(prize.lineId);
             switch(prize.lineId){
               case 0:
-                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
                 break;
               case 1:
-                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
                 break;
               case 2:
-                lines.push(this.add.image(centerX, frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
                 break;
               case 3:
-                lines.push(this.add.image(centerX, bg.height / 2, 'line4'));
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bg.height / 2, 'line4'));
                 break;
               case 4:
-                lines.push(this.add.image(centerX, bg.height / 2, 'line5'));
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bg.height / 2, 'line5'));
                 break;
             }
           }).bind(this));
