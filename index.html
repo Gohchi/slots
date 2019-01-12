@@ -12,20 +12,35 @@
     var baseText = 'WIN: $';
     var xOutsideOffset = -500;
     var yOutsideOffset = -30;
-    
+    var cursors;
+    var prizeText;
+    var centerX;
+    var bgHeight;
+
+    var frameContentMargin = 25;
+    var frameBorderOffset = 35;
+    var frameContentSize;
+    var frameContentSizeFix;
+    var reelsResultOffset = 17;
+
+    var reels;
+    var lines = [];
+    var lastResults;
+    var reelsControl = [
+      { isSpinning: false, currentCount: 0 },
+      { isSpinning: false, currentCount: 0 },
+      { isSpinning: false, currentCount: 0 }
+    ];
+    var startSpin = false;
+
     var config = {
         type: Phaser.AUTO,
         width: gameWidth,
         height: gameHeight,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 200 }
-            }
-        },
         scene: {
             preload: preload,
-            create: create
+            create: create,
+            update: update
         }
     };
 
@@ -33,7 +48,7 @@
 
     function preload ()
     {
-      this.load.setBaseURL('http://localhost:8080');
+      // this.load.setBaseURL('http://localhost:8080');
 
       this.load.image('bg', 'img/frame.png');
       this.load.image('prize', 'img/prize_window.png');
@@ -51,30 +66,31 @@
 
     function create ()
     {
-      var lines = [];
-      var centerX = gameWidth / 2;
+      centerX = gameWidth / 2;
 
       var bg = this.add.image(0, 0, 'bg');
       bg.setPosition(gameWidth / 2, bg.height / 2);
+      bgHeight = bg.height;
 
-      var frameContentMargin = 25;
-      var frameContentSize = bg.height - frameContentMargin * 2;
-      var frameContentSizeFix = frameContentSize / 3 / 2;
+      frameContentSize = bg.height - frameContentMargin * 2;
+      frameContentSizeFix = frameContentSize / 3 / 2;
 
       var reelInfoList = wrapper.getReels();
-      var reels = [[], [], []];
+      reels = [[], [], []];
       for (var i in reelInfoList) {
         var i = parseInt(i);
         reelInfoList[i].forEach((function (reelInfo, l) {
-          reels[i].push(this.add.image(xOutsideOffset + 140 * (i + 1) - 35, -25 + 140 * (l + 1) - 35, reelInfo));
+          reels[i].push(this.add.image(xOutsideOffset + 140 * (i + 1) - frameBorderOffset, -(2410) + 140 * (l + 1) - frameBorderOffset, reelInfo));
+          
         }).bind(this));
       };
-      // console.log(reels);
-      
+
+      cursors = this.input.keyboard.createCursorKeys();
+
       this.cameras.add(30, 30, 430, 430).setScroll(-470, 0);
 
       this.add.image(100, gameHeight - 40, 'prize');
-      var prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
+      prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
         fill: '#1b3768',
         fontFamily: 'Arial',
         fontSize: '20px',
@@ -89,29 +105,10 @@
           lines = [];
         })
         .on('pointerup', () => {
-          var results = wrapper.spin(); 
+          results = wrapper.spin(); 
+          lastResults = results;
+          spin(reels);
           console.log(results);
-          results.prizes.forEach((function (prize) {
-            console.log(prize.lineId);
-            switch(prize.lineId){
-              case 0:
-                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
-                break;
-              case 1:
-                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
-                break;
-              case 2:
-                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
-                break;
-              case 3:
-                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bg.height / 2, 'line4'));
-                break;
-              case 4:
-                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bg.height / 2, 'line5'));
-                break;
-            }
-          }).bind(this));
-          prizeText.setText(baseText + results.winnings.toString());
          });
     }
     function setButtonStyle(button){
@@ -122,6 +119,80 @@
         .on('pointerdown', () => { button.tint = 0x888888; })
         .on('pointerup', () => { button.tint = 0xffffff; });
       return button;
+    }
+    
+    function spin() {
+      console.log('SPIN');
+      prizeText.setText(baseText + '0');
+      startSpin = true;
+      reelsControl[0].isSpinning = true;
+      reelsControl[1].isSpinning = true;
+      reelsControl[2].isSpinning = true;
+
+      reelsResultOffset += 6;
+      if (reelsResultOffset >= 20) reelsResultOffset -= 20;
+      for(var i = 0; i < 3; i++){
+        var rro = reelsResultOffset;
+        for(var l = 0; l < 3; l++){
+          if (rro >= 20) rro -= 20;
+          reels[i][rro++]
+            .setTexture(lastResults.reelsLayout[i][l]);
+        }
+      }
+    }
+    function getIndex(reel){
+      return Math.floor((reel.y + 2305) / 140);
+    }
+    function update() {
+      if(startSpin){
+        function moveReel(reel) {
+          reel.y += 20;
+          if(reel.y >= 495){
+            reel.y = -2305;
+          }
+        }
+        for(var i = 0; i < 3; i++){
+          if (reelsControl[i].isSpinning) {
+            reels[i].forEach(moveReel);
+            
+            reelsControl[i].currentCount++;
+          }
+          if(reelsControl[i].currentCount == 7 * 14){
+            reelsControl[i].isSpinning = false;
+          }
+        }
+
+        if(!reelsControl[0].isSpinning
+          &&!reelsControl[1].isSpinning
+          &&!reelsControl[2].isSpinning) {
+          reelsControl[0].currentCount = 0;
+          reelsControl[1].currentCount = 0;
+          reelsControl[2].currentCount = 0;
+          startSpin = false;
+          console.log('SPIN STOPPED');
+          lastResults.prizes.forEach((function (prize) {
+            console.log(prize.lineId);
+            switch(prize.lineId){
+              case 0:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
+                break;
+              case 1:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
+                break;
+              case 2:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
+                break;
+              case 3:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bgHeight / 2, 'line4'));
+                break;
+              case 4:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bgHeight / 2, 'line5'));
+                break;
+            }
+          }).bind(this));
+          prizeText.setText(baseText + lastResults.winnings.toString());
+        }
+      }
     }
     </script>
 
