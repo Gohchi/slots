@@ -1,0 +1,31 @@
+{
+  "name": "slots",
+  "version": "1.0.0",
+  "description": "slots app in Phaser 3",
+  "main": "index.html",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "http-server": "^0.11.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gohchi/slots.git"
+  },
+  "keywords": [
+    "game",
+    "slots",
+    "casino"
+  ],
+  "author": "Martín Farias",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gohchi/slots/issues"
+  },
+  "homepage": "https://github.com/Gohchi/slots#readme"
+}
