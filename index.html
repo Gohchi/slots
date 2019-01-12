@@ -26,10 +26,11 @@
     var reels;
     var lines = [];
     var lastResults;
+    var currentCountStartsAt = -8;
     var reelsControl = [
-      { isSpinning: false, currentCount: 0 },
-      { isSpinning: false, currentCount: 0 },
-      { isSpinning: false, currentCount: 0 }
+      { isSpinning: false, currentCount: currentCountStartsAt },
+      { isSpinning: false, currentCount: currentCountStartsAt },
+      { isSpinning: false, currentCount: currentCountStartsAt }
     ];
     var startSpin = false;
 
@@ -88,6 +89,8 @@
       cursors = this.input.keyboard.createCursorKeys();
 
       this.cameras.add(30, 30, 430, 430).setScroll(-470, 0);
+      //debug
+      // this.cameras.add(0, 0, 100, 30 * 20).setScroll(-300, -1200).setZoom(0.2);
 
       this.add.image(100, gameHeight - 40, 'prize');
       prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
@@ -107,7 +110,7 @@
           results = wrapper.spin(); 
           lastResults = results;
           spin(reels);
-          console.log(results);
+          // console.log(results);
          });
     }
     function setButtonStyle(button){
@@ -125,21 +128,32 @@
     }
     
     function spin() {
-      console.log('SPIN');
       prizeText.setText(baseText + '0');
       startSpin = true;
       reelsControl[0].isSpinning = true;
-      reelsControl[1].isSpinning = true;
-      reelsControl[2].isSpinning = true;
+      setTimeout(function (){
+        reelsControl[1].isSpinning = true;
+        setTimeout(function (){
+          reelsControl[2].isSpinning = true;
+        }, 2e2);
+      }, 2e2);
 
-      reelsResultOffset += 6;
+      reelsResultOffset += 9;
       if (reelsResultOffset >= 20) reelsResultOffset -= 20;
       for(var i = 0; i < 3; i++){
         var rro = reelsResultOffset;
         for(var l = 0; l < 3; l++){
           if (rro >= 20) rro -= 20;
+          // var reel = 
           reels[i][rro++]
             .setTexture(lastResults.reelsLayout[i][l]);
+            // reel.tint = 0x888888;
+                
+            // setTimeout((function (r){
+            //   return function (){
+            //     r.tint = 0xffffff;
+            //   }
+            // })(reel), 3e3);
         }
       }
     }
@@ -148,6 +162,18 @@
     }
     function update() {
       if(startSpin){
+        function startReel(reel) {
+          reel.y -= 5;
+          if(reel.y < -2305){
+            reel.y = 490;
+          }
+        }
+        function stopReel(reel) {
+          reel.y -= 5;
+          if(reel.y >= 495){
+            reel.y = -2305;
+          }
+        }
         function moveReel(reel) {
           reel.y += 20;
           if(reel.y >= 495){
@@ -156,11 +182,17 @@
         }
         for(var i = 0; i < 3; i++){
           if (reelsControl[i].isSpinning) {
-            reels[i].forEach(moveReel);
+            if(reelsControl[i].currentCount < 0){
+              reels[i].forEach(startReel);
+            } else if(reelsControl[i].currentCount > (7 * 12) - 5) {
+              reels[i].forEach(stopReel);
+            } else {
+              reels[i].forEach(moveReel);
+            }
             
             reelsControl[i].currentCount++;
           }
-          if(reelsControl[i].currentCount == 7 * 14){
+          if (reelsControl[i].currentCount == 7 * 12){
             reelsControl[i].isSpinning = false;
           }
         }
@@ -168,10 +200,9 @@
         if(!reelsControl[0].isSpinning
           &&!reelsControl[1].isSpinning
           &&!reelsControl[2].isSpinning) {
-          reelsControl[0].currentCount = 0;
-          reelsControl[1].currentCount = 0;
-          reelsControl[2].currentCount = 0;
-          console.log('SPIN STOPPED');
+          reelsControl[0].currentCount = currentCountStartsAt;
+          reelsControl[1].currentCount = currentCountStartsAt;
+          reelsControl[2].currentCount = currentCountStartsAt;
           lastResults.prizes.forEach((function (prize) {
             console.log(prize.lineId);
             switch(prize.lineId){
