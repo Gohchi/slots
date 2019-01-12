@@ -24,4 +24,4 @@ below.
 
 ## Start
 
-    $ node bin/http-server
+    $ npm start
