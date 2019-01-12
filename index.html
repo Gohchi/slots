@@ -98,13 +98,12 @@
         align: 'center'
       }).setOrigin(0.5);
       setButtonStyle(this.add.image(gameWidth - 100, gameHeight - 40, 'spin'))
-        .on('pointerdown', () => {
+        .on('pointerup', function () {
           lines.forEach(function (line){
             line.destroy();
           });
           lines = [];
-        })
-        .on('pointerup', () => {
+          if (startSpin) return;
           results = wrapper.spin(); 
           lastResults = results;
           spin(reels);
@@ -114,10 +113,14 @@
     function setButtonStyle(button){
       button
         .setInteractive()
-        .on('pointerover', () => { button.tint = 0xdddddd; })
-        .on('pointerout', () => { button.tint = 0xffffff; })
-        .on('pointerdown', () => { button.tint = 0x888888; })
-        .on('pointerup', () => { button.tint = 0xffffff; });
+        .on('pointerover', function () { button.tint = 0xdddddd; })
+        .on('pointerout', function () { button.tint = 0xffffff; })
+        .on('pointerdown', function () { 
+          if (startSpin) return;
+          button.tint = 0x888888; })
+        .on('pointerup', function () { 
+          if (startSpin) return;
+          button.tint = 0xffffff; });
       return button;
     }
     
@@ -168,7 +171,6 @@
           reelsControl[0].currentCount = 0;
           reelsControl[1].currentCount = 0;
           reelsControl[2].currentCount = 0;
-          startSpin = false;
           console.log('SPIN STOPPED');
           lastResults.prizes.forEach((function (prize) {
             console.log(prize.lineId);
@@ -191,6 +193,7 @@
             }
           }).bind(this));
           prizeText.setText(baseText + lastResults.winnings.toString());
+          startSpin = false;
         }
       }
     }
