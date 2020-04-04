@@ -1,18 +1,36 @@
 {
   "name": "slots",
-  "version": "1.0.0",
-  "description": "slots app in Phaser 3",
+  "version": "3.0.0",
+  "description": "slots app in Phaser 3 + ES6 + Webpack",
+  "author": "Martín Farias <martin.akg1991@gmail.com>",
   "main": "index.html",
   "directories": {
     "lib": "lib"
   },
   "dependencies": {
-    "http-server": "^0.11.1"
+    "phaser": "^3.21.0",
+    "webfontloader": "^1.6.28"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.7.5",
+    "@babel/preset-env": "^7.7.6",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "browser-sync": "^2.26.7",
+    "browser-sync-webpack-plugin": "^2.2.2",
+    "eslint": "^5.5.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "expose-loader": "^0.7.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10"
+  },
   "scripts": {
-    "start": "node ./bin/http-server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "webpack",
+    "deploy": ""
   },
   "repository": {
     "type": "git",
@@ -23,7 +41,6 @@
     "slots",
     "casino"
   ],
-  "author": "Martín Farias",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Gohchi/slots/issues"

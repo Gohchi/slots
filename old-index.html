@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
+    <script type="text/javascript" src="lib/api.js"></script>
+</head>
+<body>
+
+    <script>
+    var gameWidth = 490;
+    var gameHeight = 570;
+    var baseText = 'WIN: $';
+    var xOutsideOffset = -500;
+    var yOutsideOffset = -30;
+    var cursors;
+    var prizeText;
+    var centerX;
+    var bgHeight;
+
+    var frameContentMargin = 25;
+    var frameBorderOffset = 35;
+    var frameContentSize;
+    var frameContentSizeFix;
+    var reelsResultOffset = 17;
+
+    var reels;
+    var lines = [];
+    var lastResults;
+    var currentCountStartsAt = -8;
+    var reelsControl = [
+      { isSpinning: false, currentCount: currentCountStartsAt },
+      { isSpinning: false, currentCount: currentCountStartsAt },
+      { isSpinning: false, currentCount: currentCountStartsAt }
+    ];
+    var startSpin = false;
+
+    var config = {
+        type: Phaser.AUTO,
+        width: gameWidth,
+        height: gameHeight,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+      var offset = (gameWidth / 2);
+      this.load.on('progress', function (value) {
+        progressBar.clear();
+        progressBar.fillStyle(0xffffff, 1);
+        progressBar.fillRect(offset / 2, gameHeight / 2 - 30, offset * value, 30);
+      }, this);
+      
+      this.load.on('fileprogress', function (file) {
+        assetText.setText('Loading asset: ' + file.key);
+      });
+      
+      this.load.on('complete', function () {
+        progressBar.destroy();
+        progressBox.destroy();
+        loadingText.destroy();
+        assetText.destroy();
+      });
+
+      var loadingText = this.make.text({
+          x: gameWidth / 2,
+          y: gameHeight / 2 - 60,
+          text: 'Loading...',
+          style: {
+              font: '20px monospace',
+              fill: '#ffffff'
+          }
+        }).setOrigin(0.5, 0.5);
+        var assetText = this.make.text({
+          x: gameWidth / 2,
+          y: gameHeight / 2 + 30,
+          text: '',
+          style: {
+              font: '18px monospace',
+              fill: '#ffffff'
+          }
+        });
+        assetText.setOrigin(0.5, 0.5);
+      var progressBar = this.add.graphics();
+      var progressBox = this.add.graphics();
+      progressBox.fillStyle(0x222222, 0.8);
+      progressBox.fillRect(offset / 2,  gameHeight / 2 - 40, offset, 50);
+
+      // this.load.setBaseURL('http://localhost:8080');
+
+      this.load.image('bg', 'img/frame.png');
+      this.load.image('prize', 'img/prize_window.png');
+      this.load.image('spin', 'img/btn_spin.png');
+      this.load.image('line1', 'img/line_1.png');
+      this.load.image('line4', 'img/line_4.png');
+      this.load.image('line5', 'img/line_5.png');
+      
+      this.load.image('a', 'img/symbols/sym_a.png');
+      this.load.image('b', 'img/symbols/sym_b.png');
+      this.load.image('c', 'img/symbols/sym_c.png');
+      this.load.image('d', 'img/symbols/sym_d.png');
+      this.load.image('e', 'img/symbols/sym_e.png');
+    }
+
+    function create ()
+    {
+      centerX = gameWidth / 2;
+
+      var bg = this.add.image(0, 0, 'bg');
+      bg.setPosition(gameWidth / 2, bg.height / 2);
+      bgHeight = bg.height;
+
+      frameContentSize = bg.height - frameContentMargin * 2;
+      frameContentSizeFix = frameContentSize / 3 / 2;
+
+      var reelInfoList = wrapper.getReels();
+      reels = [[], [], []];
+      for (var i in reelInfoList) {
+        var i = parseInt(i);
+        reelInfoList[i].forEach((function (reelInfo, l) {
+          reels[i].push(this.add.image(xOutsideOffset + 140 * (i + 1) - frameBorderOffset, -(2410) + 140 * (l + 1) - frameBorderOffset, reelInfo));
+          
+        }).bind(this));
+      };
+
+      cursors = this.input.keyboard.createCursorKeys();
+
+      this.cameras.add(30, 30, 430, 430).setScroll(-470, 0);
+      //debug
+      // this.cameras.add(0, 0, 100, 30 * 20).setScroll(-300, -1200).setZoom(0.2);
+
+      this.add.image(100, gameHeight - 40, 'prize');
+      prizeText = this.add.text(100, gameHeight - 40, baseText + '0', {
+        fill: '#1b3768',
+        fontFamily: 'Arial',
+        fontSize: '20px',
+        fontStyle: 'bold',
+        align: 'center'
+      }).setOrigin(0.5);
+      setButtonStyle(this.add.image(gameWidth - 100, gameHeight - 40, 'spin'))
+        .on('pointerup', function () {
+          lines.forEach(function (line){
+            line.destroy();
+          });
+          lines = [];
+          if (startSpin) return;
+          results = wrapper.spin(); 
+          lastResults = results;
+          spin(reels);
+          // console.log(results);
+         });
+    }
+    function setButtonStyle(button){
+      button
+        .setInteractive()
+        .on('pointerover', function () { button.tint = 0xdddddd; })
+        .on('pointerout', function () { button.tint = 0xffffff; })
+        .on('pointerdown', function () { 
+          if (startSpin) return;
+          button.tint = 0x888888; })
+        .on('pointerup', function () { 
+          if (startSpin) return;
+          button.tint = 0xffffff; });
+      return button;
+    }
+    
+    function spin() {
+      prizeText.setText(baseText + '0');
+      startSpin = true;
+      reelsControl[0].isSpinning = true;
+      setTimeout(function (){
+        reelsControl[1].isSpinning = true;
+        setTimeout(function (){
+          reelsControl[2].isSpinning = true;
+        }, 2e2);
+      }, 2e2);
+
+      reelsResultOffset += 9;
+      if (reelsResultOffset >= 20) reelsResultOffset -= 20;
+      for(var i = 0; i < 3; i++){
+        var rro = reelsResultOffset;
+        for(var l = 0; l < 3; l++){
+          if (rro >= 20) rro -= 20;
+          // var reel = 
+          reels[i][rro++]
+            .setTexture(lastResults.reelsLayout[i][l]);
+            // reel.tint = 0x888888;
+                
+            // setTimeout((function (r){
+            //   return function (){
+            //     r.tint = 0xffffff;
+            //   }
+            // })(reel), 3e3);
+        }
+      }
+    }
+    function getIndex(reel){
+      return Math.floor((reel.y + 2305) / 140);
+    }
+    function update() {
+      if(startSpin){
+        function startReel(reel) {
+          reel.y -= 5;
+          if(reel.y < -2305){
+            reel.y = 490;
+          }
+        }
+        function stopReel(reel) {
+          reel.y -= 5;
+          if(reel.y >= 495){
+            reel.y = -2305;
+          }
+        }
+        function moveReel(reel) {
+          reel.y += 20;
+          if(reel.y >= 495){
+            reel.y = -2305;
+          }
+        }
+        for(var i = 0; i < 3; i++){
+          if (reelsControl[i].isSpinning) {
+            if(reelsControl[i].currentCount < 0){
+              reels[i].forEach(startReel);
+            } else if(reelsControl[i].currentCount > (7 * 12) - 5) {
+              reels[i].forEach(stopReel);
+            } else {
+              reels[i].forEach(moveReel);
+            }
+            
+            reelsControl[i].currentCount++;
+          }
+          if (reelsControl[i].currentCount == 7 * 12){
+            reelsControl[i].isSpinning = false;
+          }
+        }
+
+        if(!reelsControl[0].isSpinning
+          &&!reelsControl[1].isSpinning
+          &&!reelsControl[2].isSpinning) {
+          reelsControl[0].currentCount = currentCountStartsAt;
+          reelsControl[1].currentCount = currentCountStartsAt;
+          reelsControl[2].currentCount = currentCountStartsAt;
+          lastResults.prizes.forEach((function (prize) {
+            console.log(prize.lineId);
+            switch(prize.lineId){
+              case 0:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 * 2- frameContentSizeFix, 'line1'));
+                break;
+              case 1:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize / 3 - frameContentSizeFix, 'line1'));
+                break;
+              case 2:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + frameContentMargin + frameContentSize - frameContentSizeFix, 'line1'));
+                break;
+              case 3:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bgHeight / 2, 'line4'));
+                break;
+              case 4:
+                lines.push(this.add.image(centerX + xOutsideOffset, yOutsideOffset + bgHeight / 2, 'line5'));
+                break;
+            }
+          }).bind(this));
+          prizeText.setText(baseText + lastResults.winnings.toString());
+          startSpin = false;
+        }
+      }
+    }
+    </script>
+
+</body>
+</html>
