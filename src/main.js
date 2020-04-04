@@ -10,13 +10,13 @@ import config from './config'
 
 const gameConfig = Object.assign(config, {
   scene: [BootScene, GameScene], // SplashScene, GameOverScene, MainMenu, 
-  pixelArt: true,
+  pixelArt: false,
   physics: {
     default: 'arcade',
     arcade: {
       gravity: { x: 0, y: 0 }
     },
-    pixelArt: true
+    pixelArt: false
   }
 })
 
