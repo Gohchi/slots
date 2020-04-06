@@ -10,7 +10,7 @@ import config from './config'
 
 const gameConfig = Object.assign(config, {
   scene: [BootScene, GameScene], // SplashScene, GameOverScene, MainMenu, 
-  pixelArt: false,
+  pixelArt: true,
   physics: {
     default: 'arcade',
     arcade: {

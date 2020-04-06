@@ -22,11 +22,11 @@ export default class Wrapper {
 			[6, 4, 2]
 		];
 		this.PAYTABLE = [
-			{ symbol: "a", prize: 50 },
-			{ symbol: "b", prize: 45 },
-			{ symbol: "c", prize: 40 },
-			{ symbol: "d", prize: 35 },
-			{ symbol: "e", prize: 30 }
+			{ symbol: "a", prize: 100 },
+			{ symbol: "b", prize: 80 },
+			{ symbol: "c", prize: 50 },
+			{ symbol: "d", prize: 30 },
+			{ symbol: "e", prize: 1 }
 		];
 	}
 	//DATA

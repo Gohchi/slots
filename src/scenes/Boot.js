@@ -59,11 +59,35 @@ export default class extends Phaser.Scene {
     this.load.image('line4', 'assets/line_4.png');
     this.load.image('line5', 'assets/line_5.png');
     
-    this.load.image('a', 'assets/symbols/sym_a.png');
-    this.load.image('b', 'assets/symbols/sym_b.png');
-    this.load.image('c', 'assets/symbols/sym_c.png');
-    this.load.image('d', 'assets/symbols/sym_d.png');
-    this.load.image('e', 'assets/symbols/sym_e.png');
+    this.load.image('a', 'assets/symbols/sonic_sym_a.png');
+    this.load.image('b', 'assets/symbols/sonic_sym_b.png');
+    this.load.image('c', 'assets/symbols/sonic_sym_c.png');
+    this.load.image('d', 'assets/symbols/sonic_sym_d.png');
+    this.load.image('e', 'assets/symbols/sonic_sym_e.png');
+
+    
+    this.load.audio('ring', 'assets/audio/S3K_33.wav', {
+      instances: 1
+    });
+    this.load.audio('continue', 'assets/audio/S3K_AC.wav', {
+      instances: 1
+    });
+    this.load.audio('error', 'assets/audio/S3K_B2.wav', {
+      instances: 1
+    });
+    this.load.audio('ring-loss', 'assets/audio/sonic_losing_rings.mp3', {
+      instances: 1
+    });
+    this.load.audio('spin', 'assets/audio/S3K_53.wav', {
+      instances: 1
+    });
+
+    this.load.audio('song-casino-night', 'assets/audio/songs/CasinoNightZone.mp3', {
+      instances: 1
+    });
+
+    
+    this.load.image('bg-casino', 'assets/bg/casino.png');
   }
   
   update () {
