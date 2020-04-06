@@ -1,4 +1,4 @@
-# Slots game in Phaser 3
+# Sonic fan-made slots game in Phaser 3
 
 ## Requirements
 
@@ -11,10 +11,10 @@ You should be able to run the following command after the installation procedure
 below.
 
     $ node --version
-    v8.12.0
+    v12.16.1
 
     $ npm --version
-    6.4.1
+    6.13.4
 
 ## Install
 
@@ -25,3 +25,8 @@ below.
 ## Start
 
     $ npm start
+    
+# A preview
+
+
+![screenshot-in-game](./assets/other/screenshot1.png)
