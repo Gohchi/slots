@@ -30,3 +30,9 @@ below.
 
 
 ![screenshot-in-game](./assets/other/screenshot1.png)
+
+
+
+## Legal
+
+This is released under the [MIT License](http://mit-license.org/)
