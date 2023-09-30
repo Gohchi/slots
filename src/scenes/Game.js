@@ -3,95 +3,123 @@ import Phaser from 'phaser'
 import { windowWidth, windowHeight, gameWidth, gameHeight } from '../config'
 import { checkStates, saveState, dateAsString, drawFrame, addButton } from '../utils/tools'
 import Wrapper from '../lib/api.engine'
+import Reels from '../components/Reels/Reels';
 // import ScrollingBackground from '../utils/ScrollingBackground'
 // import Player from '../sprites/Player'
 // import Enemy from '../sprites/Enemy'
 let wrapper = new Wrapper();
 
+const DEBUG = false;
+
+
 export default class extends Phaser.Scene {
-  constructor () {
+  constructor() {
     super({ key: 'GameScene' })
 
-
+    this.mute = false;
     // configure state
     this.states = checkStates();
     this.points = this.states.points || 0;
-    if(!this.states.startDate){
+    if (!this.states.startDate) {
       let newDate = new Date();
-      saveState({startDate: newDate});
+      saveState({ startDate: newDate });
       this.startDate = newDate;
     } else {
       this.startDate = this.states.startDate;
     }
 
     this.baseText = 'SCORE: $';
-    this.xOutsideOffset = -500;
-    this.yOutsideOffset = -30;
+    const wh = 430;
+    this.xOutsideOffset = -400;
+    this.yOutsideOffset = 0;
     this.frameContentMargin = 25;
-    this.frameBorderOffset = 35;
+    // this.frameBorderOffset = 35;
+    this.frameBorderOffset = wh * .08;
     this.reelsResultOffset = 17;
     this.lines = [];
-    this.currentCountStartsAt = -8;
-    this.reelsControl = [
-      { isSpinning: false, currentCount: this.currentCountStartsAt },
-      { isSpinning: false, currentCount: this.currentCountStartsAt },
-      { isSpinning: false, currentCount: this.currentCountStartsAt }
-    ];
-    this.startSpin = false;
+    this.spinning = false;
+    const gameXPosition = windowWidth / 2 - gameWidth / 2;
     this.cameraInfo = {
-      x: 30, y: 30, w: 430, h: 430
+      x: windowWidth < 700 ? 10 : gameXPosition,
+      y: 50,
+      w: wh,
+      h: wh
     }
   }
 
-  create () {
-    // this.song = this.sound.add('song-casino-night', {volume: 0.5});
-    // this.song.play();
+  create() {
+    //#region sounds
+    if (!DEBUG) {
+      this.song = this.sound.add('song-casino-night', {volume: 0.5});
+      this.song.play();
+    }
+    this.soundRing = this.sound.add('ring', { volume: 0.5 });
+    this.soundError = this.sound.add('error', { volume: 0.5 });
+    this.soundSpin = this.sound.add('spin', { volume: 0.1 });
+    //#endregion
 
-    
-    this.background = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, "bg-casino")
-      .setOrigin(0)
-      .setScale(this.sys.game.config.height / 376) // image size
-    ;
-    setInterval(() => {
-      this.background.tilePositionX += 500;
-    }, 60);
+    //#region background
+    if (!DEBUG) {
+      this.background = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, "bg-casino")
+        .setOrigin(0)
+        .setScale(this.sys.game.config.height / 376) // image size
+      ;
+      setInterval(() => {
+        this.background.tilePositionX += 500;
+      }, 60);
+    }
+    //#endregion
 
     this.centerX = gameWidth / 2;
 
     this.graphics = this.add.graphics();
     drawFrame(this.graphics, this.cameraInfo.x, this.cameraInfo.y, this.cameraInfo.w, this.cameraInfo.h);
 
-    // this.add.image(100, gameHeight - 40, 'prize');
-    // let bg = this.add.image(0, 0, 'bg').setAlpha(0.8);
-    // bg.setPosition(gameWidth / 2, bg.height / 2);
     this.bgHeight = gameWidth; // bg.height;
 
     this.frameContentSize = this.bgHeight - this.frameContentMargin * 2;
     this.frameContentSizeFix = this.frameContentSize / 3 / 2;
 
-    let reelInfoList = wrapper.getReels();
-    this.reels = [[], [], []];
-    for (let i in reelInfoList) {
-      let i = parseInt(i);
-      reelInfoList[i].forEach(((reelInfo, l) => {
-        this.reels[i].push(this.add.image(this.xOutsideOffset + 140 * (i + 1) - this.frameBorderOffset, -(2410) + 140 * (l + 1) - this.frameBorderOffset, reelInfo).setScale(3));
-        
-      }).bind(this));
-    };
+    const spacing = 144;
+    this.reels = new Reels({
+      scene: this,
+      x: this.xOutsideOffset,
+      y: this.yOutsideOffset - spacing * 10,
+      spacing,
+      data: wrapper.getReels()
+    });
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
-    this.cameras.add(this.cameraInfo.x, this.cameraInfo.y, this.cameraInfo.w, this.cameraInfo.h).setScroll(-470, 0);
+    this.cameras
+      .add(this.cameraInfo.x, this.cameraInfo.y, this.cameraInfo.w, this.cameraInfo.h)
+      .setScroll(this.xOutsideOffset - 76, this.yOutsideOffset - (spacing / 2));
+
+    if (DEBUG) {
+      const { x, y, w, h } = {
+        x: 980, y: 30, w: 400, h: 700
+      };
+      // debug camera
+      this.cameras.add(x, y, w, h)
+        .setOrigin(0)
+        .setScroll(this.xOutsideOffset -76, -1750)
+        .setZoom(.2);
+
+      const graphics = this.graphics;
+      graphics.lineStyle(2, 0xaf4f00);
+      graphics.strokeRect(x, y, w, h);
+    }
     //debug
     // this.cameras.add(0, 0, 100, 30 * 20).setScroll(-300, -1200).setZoom(0.2);
 
-    this.spinInfo = this.add.text(gameWidth + 10 , 10, "TAP EVERYWHERE TO SPIN", {
+    //#region info
+    this.spinInfo = this.add.text(10, 10, "TAP EVERYWHERE TO SPIN", {
       fill: '#FFFFFF',
       fontFamily: 'Arial',
       fontSize: '22px',
       fontStyle: 'bold'
     });
-    
+
     addButton(this, this.graphics, 16, gameHeight - 50, 360, 35);
 
     this.prizeText = this.add.text(114, gameHeight - 47, this.baseText + this.padZero(this.points, 10), {
@@ -118,154 +146,107 @@ export default class extends Phaser.Scene {
       rtl: true
     };
     const paytableY = 20;
-    this.paytableText = this.add.text(windowWidth - 10 , paytableY, "PAY TABLE", style)
+    this.paytableText = this.add.text(windowWidth - 10, paytableY, "PAY TABLE", style)
     wrapper.PAYTABLE.forEach((o, i) => {
       let yPos = 75 * (i - 1) + 120 + paytableY;
-      let img = this.add.image(windowWidth - 80 , yPos, o.symbol).setOrigin(0).setScale(2);
+      let img = this.add.image(windowWidth - 80, yPos, o.symbol).setOrigin(0).setScale(2);
       this.add.text(img.x - 20, img.y + 20, o.prize, style)
     })
 
     // user info
     const startDate = dateAsString(this.startDate)
-    this.startDateText = this.add.text(windowWidth - 10 , windowHeight - 30, "Start date: " + startDate, Object.assign({}, style, { fontSize: '18px' }))
+    this.startDateText = this.add.text(windowWidth - 10, windowHeight - 30, "Start date: " + startDate, Object.assign({}, style, { fontSize: '18px' }))
 
-    
-    this.soundRing = this.sound.add('ring', {volume: 0.5});
-    this.soundError = this.sound.add('error', {volume: 0.5});
-    this.soundSpin = this.sound.add('spin', {volume: 0.1});
+    //#endregion
 
-    this.input.on('pointerdown', () => this.doSpin() );
+    //#region events
+    this.input.on('pointerdown', () => this.doSpin());
+    //#endregion
   }
   
   update() {
-    if(this.startSpin){
-      function startReel(reel) {
-        reel.y -= 5;
-        if(reel.y < -2305){
-          reel.y = 490;
-        }
-      }
-      function stopReel(reel) {
-        reel.y -= 5;
-        if(reel.y >= 495){
-          reel.y = -2305;
-        }
-      }
-      function moveReel(reel) {
-        reel.y += 20;
-        if(reel.y >= 495){
-          reel.y = -2305;
-        }
-      }
-      for(let i = 0; i < 3; i++){
-        if (this.reelsControl[i].isSpinning) {
-          if(this.reelsControl[i].currentCount < 0){
-            this.reels[i].forEach(startReel);
-          } else if(this.reelsControl[i].currentCount > (7 * 12) - 5) {
-            this.reels[i].forEach(stopReel);
-          } else {
-            this.reels[i].forEach(moveReel);
-          }
-          
-          this.reelsControl[i].currentCount++;
-        }
-        if (this.reelsControl[i].currentCount == 7 * 12){
-          this.reelsControl[i].isSpinning = false;
-        }
-      }
+    if (this.spinning) {
+      this.reels.update();
 
-      if(!this.reelsControl[0].isSpinning
-        &&!this.reelsControl[1].isSpinning
-        &&!this.reelsControl[2].isSpinning) {
-        this.reelsControl[0].currentCount = this.currentCountStartsAt;
-        this.reelsControl[1].currentCount = this.currentCountStartsAt;
-        this.reelsControl[2].currentCount = this.currentCountStartsAt;
+      if (this.reels.allStopped) {
+        const yOffset = 290;
+
+        this.reels.restartAll();
         this.lastResults.prizes.forEach((prize => {
           // console.log(prize.lineId);
-          switch(prize.lineId){
+          switch (prize.lineId) {
             case 0:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 * 2- this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 * 2 - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset + (yOffset/2), 'line1'));
               break;
             case 1:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 - this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset, 'line1'));
               break;
             case 2:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize - this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset + yOffset, 'line1'));
               break;
             case 3:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.bgHeight / 2, 'line4'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 140, this.yOutsideOffset + 144, 'line4'));
               break;
             case 4:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.bgHeight / 2, 'line5'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 140, this.yOutsideOffset + 144, 'line5'));
               break;
           }
         }).bind(this));
+
+        //#region update points
         this.points += this.lastResults.winnings;
         saveState({ points: this.points });
         this.currentPrizeText
           .setText("$ " + this.lastResults.winnings)
-          .setFill( this.lastResults.winnings ? '#FF911D' : '#5C5C5C');
+          .setFill(this.lastResults.winnings ? '#FF911D' : '#5C5C5C');
         this.soundSpin.stop();
-        if(this.lastResults.winnings)
-          this.soundRing.play();
-        else
-          this.soundError.play();
+        if (this.lastResults.winnings)
+          if (!this.mute) this.soundRing.play();
+          else
+            if (!this.mute) this.soundError.play();
+
+        if (DEBUG) {
+          console.log(this.lastResults);
+        }
+        // for (let reel of this.reels) {
+        //   console.log(reel.map(o => o.texture.key));
+        // }
 
         this.prizeText
           .setText(this.baseText + this.padZero(this.points, 10));
-        this.startSpin = false;
+        //#endregion
+
+        this.spinning = false;
       }
     }
   }
-  
-  doSpin(){
+
+  doSpin() {
+    if (this.spinning) return;
+
     this.lines.forEach(line => {
       line.destroy();
     });
     this.lines = [];
-    this.soundSpin.play();
+    if (!this.mute) this.soundSpin.play();
     this.lastResults = wrapper.spin();
-    this.currentPrizeText
-      .setText("")
-    this.spin(this.reels);
+    this.currentPrizeText.setText("");
+    this.spin();
   }
 
   spin() {
-    // this.prizeText.setText(this.baseText + '0');
-    this.startSpin = true;
-    this.reelsControl[0].isSpinning = true;
-    setTimeout(() => {
-      this.reelsControl[1].isSpinning = true;
-      setTimeout(() => {
-        this.reelsControl[2].isSpinning = true;
-      }, 2e2);
-    }, 2e2);
-
-    this.reelsResultOffset += 9;
-    if (this.reelsResultOffset >= 20) this.reelsResultOffset -= 20;
-    for(let i = 0; i < 3; i++){
-      let rro = this.reelsResultOffset;
-      for(let l = 0; l < 3; l++){
-        if (rro >= 20) rro -= 20;
-        // let reel = 
-        this.reels[i][rro++]
-          .setTexture(this.lastResults.reelsLayout[i][l]);
-          // reel.tint = 0x888888;
-              
-          // setTimeout((function (r){
-          //   return function (){
-          //     r.tint = 0xffffff;
-          //   }
-          // })(reel), 3e3);
-      }
-    }
+    this.spinning = true;
+    this.reels.spin(this.lastResults.reelsLayout);
   }
 
 
   padZero(n, len = 2) {
     return ('0'.repeat(len) + n).slice(-len);
   }
-  getIndex(reel){
+  getIndex(reel) {
     return Math.floor((reel.y + 2305) / 140);
   }
 }
