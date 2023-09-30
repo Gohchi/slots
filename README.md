@@ -11,10 +11,10 @@ You should be able to run the following command after the installation procedure
 below.
 
     $ node --version
-    v12.16.1
+    v18.18.0
 
     $ npm --version
-    6.13.4
+    10.1.0
 
 ## Install
 
