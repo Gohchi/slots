@@ -2,27 +2,41 @@ const webpack = require("webpack");
 const path = require("path");
 
 // Phaser webpack config
-const phaserModule = path.join(__dirname, './node_modules/phaser/');
-const phaser = path.join(phaserModule, './src/phaser.js');
+const phaserModule = path.join(__dirname, '/node_modules/phaser/');
+const phaser = path.join(phaserModule, 'src/phaser.js');
 
 module.exports = {
   entry: {
-    app: './src/game.js',
-    vendor: 'phaser'
+    app: path.resolve(__dirname, 'src/game.js'),
+    vendor: ['phaser']
   },
   output: {
     // pathinfo: true,
     path: path.resolve(__dirname, 'dist'),
-    publicPath: './dist/',
-    filename: '[name].bundle.js'
+    publicPath: '/',
+    filename: 'bundle.[name].js',
+    assetModuleFilename: pathData => {
+      const filepath = path
+        .dirname(pathData.filename)
+        .split("/")
+        .slice(1)
+        .join("/");
+      return `${filepath}/[name].[hash][ext][query]`;
+    }
   },
   target: 'web',
   module: {
     rules: [
       {
         test: /\.js$/,
-        use: ['babel-loader'],
-        include: path.join(__dirname, 'src')
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            include: path.join(__dirname, 'src'),
+            presets: ['@babel/preset-env']
+          }
+        }
       },
       {
         test: /\.(woff(2)?|ttf|eot|otf)$/,
@@ -34,12 +48,6 @@ module.exports = {
       }
     ]
   },
-  // optimization: {
-  //   splitChunks: {
-  //     name: 'vendor',
-  //     chunks: 'all'
-  //   }
-  // },
   plugins: [
     new webpack.DefinePlugin({
       CANVAS_RENDERER: JSON.stringify(true),
@@ -58,4 +66,4 @@ module.exports = {
       "buffer": require.resolve("buffer/")
     }
   }
-}
+};

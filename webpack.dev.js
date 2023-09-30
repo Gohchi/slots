@@ -14,11 +14,11 @@ module.exports = merge(common, {
   mode: 'development',
   devtool: 'source-map',
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'public'),
-    },
-    compress: true,
-    port: 3000,
+    // static: {
+    //   directory: path.join(__dirname, 'public'),
+    // },
+    // compress: true,
+    // port: 3000,
   },
   plugins: [
     definePlugin,
