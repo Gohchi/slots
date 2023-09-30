@@ -74,7 +74,7 @@ export const drawFrame = (graphics, x, y, w, h) => {
   let cx = x, cy = y-9, cw = w, ch = h+14;
 
   graphics.lineStyle(2, 0xffffff, 1);
-  let xo = 6, limit = 46;
+  let xo = 6, limit = cw*0.1 + 3;
   for(let i = 0; i < limit; i++){
     if(i < 2 || i > limit - 3){
       graphics.beginPath();
@@ -97,6 +97,7 @@ export const drawFrame = (graphics, x, y, w, h) => {
   graphics.fillStyle(0x333333, 0.6);
   graphics.fillRect(cx+20, cy+26, cw-20, ch-20);
 
+  // main frame - yellow
   graphics.lineStyle(8, 0xffff00);
   graphics.beginPath();
   graphics.moveTo(cx, cy);
