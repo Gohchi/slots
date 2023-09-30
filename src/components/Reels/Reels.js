@@ -130,8 +130,8 @@ class ReelItem {
   }
 
   setTexture(value) {
-    this.IMAGE.setTexture(value)
-      .setTint(0x00FF00); //debug
+    this.IMAGE.setTexture(value);
+      // .setTint(0x00FF00); //debug
   }
 
   start() {

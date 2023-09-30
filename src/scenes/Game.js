@@ -9,14 +9,14 @@ import Reels from '../components/Reels/Reels';
 // import Enemy from '../sprites/Enemy'
 let wrapper = new Wrapper();
 
-const DEBUG = true;
+const DEBUG = false;
 
 
 export default class extends Phaser.Scene {
   constructor() {
     super({ key: 'GameScene' })
 
-    this.mute = true;
+    this.mute = false;
     // configure state
     this.states = checkStates();
     this.points = this.states.points || 0;
@@ -49,21 +49,25 @@ export default class extends Phaser.Scene {
 
   create() {
     //#region sounds
-    // this.song = this.sound.add('song-casino-night', {volume: 0.5});
-    // this.song.play();
+    if (!DEBUG) {
+      this.song = this.sound.add('song-casino-night', {volume: 0.5});
+      this.song.play();
+    }
     this.soundRing = this.sound.add('ring', { volume: 0.5 });
     this.soundError = this.sound.add('error', { volume: 0.5 });
     this.soundSpin = this.sound.add('spin', { volume: 0.1 });
     //#endregion
 
     //#region background
-    // this.background = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, "bg-casino")
-    //   .setOrigin(0)
-    //   .setScale(this.sys.game.config.height / 376) // image size
-    // ;
-    // setInterval(() => {
-    //   this.background.tilePositionX += 500;
-    // }, 60);
+    if (!DEBUG) {
+      this.background = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, "bg-casino")
+        .setOrigin(0)
+        .setScale(this.sys.game.config.height / 376) // image size
+      ;
+      setInterval(() => {
+        this.background.tilePositionX += 500;
+      }, 60);
+    }
     //#endregion
 
     this.centerX = gameWidth / 2;
@@ -77,9 +81,6 @@ export default class extends Phaser.Scene {
     this.frameContentSizeFix = this.frameContentSize / 3 / 2;
 
     const spacing = 144;
-    // const spacing = this.spacing = this.cameraInfo.w / 3;
-    // const spacingFix = spacing - 3.3;
-    // const reelScale = this.cameraInfo.w / spacing;
     this.reels = new Reels({
       scene: this,
       x: this.xOutsideOffset,
@@ -168,24 +169,29 @@ export default class extends Phaser.Scene {
       this.reels.update();
 
       if (this.reels.allStopped) {
+        const yOffset = 290;
+
         this.reels.restartAll();
         this.lastResults.prizes.forEach((prize => {
           // console.log(prize.lineId);
           switch (prize.lineId) {
             case 0:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 * 2 - this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 * 2 - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset + (yOffset/2), 'line1'));
               break;
             case 1:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 - this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize / 3 - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset, 'line1'));
               break;
             case 2:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize - this.frameContentSizeFix, 'line1'));
+              // this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.frameContentMargin + this.frameContentSize - this.frameContentSizeFix, 'line1'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 160, this.yOutsideOffset + yOffset, 'line1'));
               break;
             case 3:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.bgHeight / 2, 'line4'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 140, this.yOutsideOffset + 144, 'line4'));
               break;
             case 4:
-              this.lines.push(this.add.image(this.centerX + this.xOutsideOffset, this.yOutsideOffset + this.bgHeight / 2, 'line5'));
+              this.lines.push(this.add.image(this.xOutsideOffset + 140, this.yOutsideOffset + 144, 'line5'));
               break;
           }
         }).bind(this));
@@ -202,7 +208,9 @@ export default class extends Phaser.Scene {
           else
             if (!this.mute) this.soundError.play();
 
-        console.log(this.lastResults);
+        if (DEBUG) {
+          console.log(this.lastResults);
+        }
         // for (let reel of this.reels) {
         //   console.log(reel.map(o => o.texture.key));
         // }
@@ -230,22 +238,8 @@ export default class extends Phaser.Scene {
   }
 
   spin() {
-    // this.prizeText.setText(this.baseText + '0');
     this.spinning = true;
     this.reels.spin(this.lastResults.reelsLayout);
-    
-    //#region update textures
-    // this.reelsResultOffset += 9;
-    // if (this.reelsResultOffset >= 20) this.reelsResultOffset -= 20;
-    // for (let i = 0; i < 3; i++) {
-    //   let rro = this.reelsResultOffset;
-    //   for (let l = 0; l < 3; l++) {
-    //     if (rro >= 20) rro -= 20;
-    //     this.reels[i][rro++]
-    //       .setTexture(this.lastResults.reelsLayout[i][l]);
-    //   }
-    // }
-    //#endregion
   }
 
 
