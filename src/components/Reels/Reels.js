@@ -13,6 +13,7 @@ export default class Reels {
     }));
 
     this.scene = scene;
+    this.spinOffset = 18;
   }
   
 
@@ -55,22 +56,20 @@ export default class Reels {
     this.items.forEach(reel => reel.currentCount = COUNT_STARTS_AT);
   }
 
-  spin() {
-    const delay = 2e2;
-    let offset = 0;
-    
-    // this.items.forEach(reel => setTimeout(
-    //   () => reel.isSpinning = true,
-    //   delay * offset++
-    // ));
-    this.step = 0;
-    // this.reelsControl[0].isSpinning = true;
-    // setTimeout(() => {
-    //   this.reelsControl[1].isSpinning = true;
-    //   setTimeout(() => {
-    //     this.reelsControl[2].isSpinning = true;
-    //   }, 2e2);
-    // }, 2e2);
+  spin(layout) {
+    const offset = this.spinOffset;
+
+    this.items.forEach((reel, index) => {
+      const newMasks = layout[index];
+      for (const i in newMasks) {
+        const mask = newMasks[i];
+        reel.items[(+i + offset) % 20].setTexture(mask);
+      }
+    });
+
+    this.spinOffset += 8;
+
+    this.step = 0; // restarting
   }
 }
 
@@ -128,6 +127,11 @@ class ReelItem {
   }
   set y(value) {
     this.IMAGE.y = value;
+  }
+
+  setTexture(value) {
+    this.IMAGE.setTexture(value)
+      .setTint(0x00FF00); //debug
   }
 
   start() {

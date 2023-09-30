@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 import { windowWidth, windowHeight, gameWidth, gameHeight } from '../config'
 import { checkStates, saveState, dateAsString, drawFrame, addButton } from '../utils/tools'
 import Wrapper from '../lib/api.engine'
-import Reels from '../components/Reel/Reels';
+import Reels from '../components/Reels/Reels';
 // import ScrollingBackground from '../utils/ScrollingBackground'
 // import Player from '../sprites/Player'
 // import Enemy from '../sprites/Enemy'
@@ -232,8 +232,8 @@ export default class extends Phaser.Scene {
   spin() {
     // this.prizeText.setText(this.baseText + '0');
     this.spinning = true;
-    this.reels.spin();
-
+    this.reels.spin(this.lastResults.reelsLayout);
+    
     //#region update textures
     // this.reelsResultOffset += 9;
     // if (this.reelsResultOffset >= 20) this.reelsResultOffset -= 20;
