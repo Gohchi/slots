@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 // import WebFont from 'webfontloader'
-import { gameWidth, gameHeight } from '../config'
+import { windowWidth, windowHeight } from '../config'
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -8,11 +8,11 @@ export default class extends Phaser.Scene {
   }
 
   preload () {
-    let offset = (gameWidth / 2);
+    let offset = (windowWidth / 2);
     this.load.on('progress', function (value) {
       progressBar.clear();
       progressBar.fillStyle(0xffffff, 1);
-      progressBar.fillRect(offset / 2, gameHeight / 2 - 30, offset * value, 30);
+      progressBar.fillRect(offset / 2, windowHeight / 2 - 30, offset * value, 30);
     }, this);
     
     this.load.on('fileprogress', function (file) {
@@ -27,8 +27,8 @@ export default class extends Phaser.Scene {
     });
 
     let loadingText = this.make.text({
-        x: gameWidth / 2,
-        y: gameHeight / 2 - 60,
+        x: windowWidth / 2,
+        y: windowHeight / 2 - 60,
         text: 'Loading...',
         style: {
             font: '20px monospace',
@@ -36,8 +36,8 @@ export default class extends Phaser.Scene {
         }
       }).setOrigin(0.5, 0.5);
       let assetText = this.make.text({
-        x: gameWidth / 2,
-        y: gameHeight / 2 + 30,
+        x: windowWidth / 2,
+        y: windowHeight / 2 + 30,
         text: '',
         style: {
             font: '18px monospace',
@@ -48,7 +48,7 @@ export default class extends Phaser.Scene {
     let progressBar = this.add.graphics();
     let progressBox = this.add.graphics();
     progressBox.fillStyle(0x222222, 0.8);
-    progressBox.fillRect(offset / 2,  gameHeight / 2 - 40, offset, 50);
+    progressBox.fillRect(offset / 2,  windowHeight / 2 - 40, offset, 50);
 
     // this.load.setBaseURL('http://localhost:8080');
 
