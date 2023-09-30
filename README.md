@@ -29,7 +29,7 @@ below.
 # A preview
 
 
-![screenshot-in-game](./assets/other/screenshot1.png)
+![screenshot-in-game](./src/assets/other/screenshot1.png)
 
 
 
