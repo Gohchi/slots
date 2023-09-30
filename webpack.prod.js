@@ -19,36 +19,6 @@ module.exports = merge(common, {
     maxEntrypointSize: 900000,
     maxAssetSize: 900000
   },
-  // optimization: {
-  //   minimizer: [
-  //     new TerserPlugin({
-  //       terserOptions: {
-  //         output: {
-  //           comments: false
-  //         }
-  //       }
-  //     })
-  //   ]
-  // },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader"
-        }
-      },
-      {
-        test: [/\.vert$/, /\.frag$/],
-        use: "raw-loader"
-      },
-      {
-        test: /\.(gif|png|jpe?g|svg|xml)$/i,
-        use: "file-loader"
-      }
-    ]
-  },
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html',
@@ -66,11 +36,6 @@ module.exports = merge(common, {
         removeEmptyAttributes: true
       },
       hash: true
-    }),
-    new CopyPlugin({
-      patterns: [
-        { from: 'src/assets/favicon.ico', to: 'assets/favicon.ico' }
-      ],
     })
   ]
 });

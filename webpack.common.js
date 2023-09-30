@@ -21,7 +21,7 @@ module.exports = {
         .split("/")
         .slice(1)
         .join("/");
-      return `${filepath}/[name].[hash][ext][query]`;
+      return `${filepath}/[name].[ext][query]`;
     }
   },
   target: 'web',
