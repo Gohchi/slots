@@ -76,14 +76,14 @@ export default class extends Phaser.Scene {
     this.frameContentSize = this.bgHeight - this.frameContentMargin * 2;
     this.frameContentSizeFix = this.frameContentSize / 3 / 2;
 
-    // const spacing = 140;
-    const spacing = this.spacing = this.cameraInfo.w / 3;
-    const spacingFix = spacing - 3.3;
+    const spacing = 144;
+    // const spacing = this.spacing = this.cameraInfo.w / 3;
+    // const spacingFix = spacing - 3.3;
     // const reelScale = this.cameraInfo.w / spacing;
     this.reels = new Reels({
       scene: this,
       x: this.xOutsideOffset,
-      y: this.yOutsideOffset,
+      y: this.yOutsideOffset - spacing * 10,
       spacing,
       data: wrapper.getReels()
     });
@@ -101,7 +101,7 @@ export default class extends Phaser.Scene {
       // debug camera
       this.cameras.add(x, y, w, h)
         .setOrigin(0)
-        .setScroll(this.xOutsideOffset -76, -1500)
+        .setScroll(this.xOutsideOffset -76, -1750)
         .setZoom(.2);
 
       const graphics = this.graphics;
@@ -225,8 +225,7 @@ export default class extends Phaser.Scene {
     this.lines = [];
     if (!this.mute) this.soundSpin.play();
     this.lastResults = wrapper.spin();
-    this.currentPrizeText
-      .setText("")
+    this.currentPrizeText.setText("");
     this.spin();
   }
 

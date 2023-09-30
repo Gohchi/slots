@@ -1,6 +1,6 @@
 
 const COUNT_STARTS_AT = -8; // currentCountStartsAt
-const STOP_REEL_VALUE = 170; // 79
+const STOP_REEL_VALUE = 104; // 79 | 282
 const STOP_SPIN = STOP_REEL_VALUE + 1;
 
 export default class Reels {
@@ -8,7 +8,8 @@ export default class Reels {
     let offset = 0;
     
     this.items = data.map(infoList => new Reel({ scene, y, spacing, infoList,
-      x: x + (spacing * offset++)
+      x: x + (spacing * offset),
+      stepOffset: 26 * offset++
     }));
 
     this.scene = scene;
@@ -16,6 +17,14 @@ export default class Reels {
   
 
   update() {
+    const { step } = this;
+
+    this.items.forEach(reel => {
+      if (step < 100 && !reel.isSpinning && step >= reel.stepOffset) {
+        reel.isSpinning = true;
+      }
+    });
+
     this.items.forEach(reel => {
       if (reel.isSpinning) {
         if (reel.currentCount < 0) {
@@ -27,10 +36,14 @@ export default class Reels {
         }
         reel.currentCount++;
       }
-      if (reel.currentCount == STOP_SPIN) {
+      if (reel.currentCount >= STOP_SPIN + 1) {
         reel.isSpinning = false;
       }
     });
+
+    if (this.step < 10000) {
+      this.step++;
+    }
   }
 
   
@@ -46,10 +59,11 @@ export default class Reels {
     const delay = 2e2;
     let offset = 0;
     
-    this.items.forEach(reel => setTimeout(
-      () => reel.isSpinning = true,
-      delay * offset++
-    ));
+    // this.items.forEach(reel => setTimeout(
+    //   () => reel.isSpinning = true,
+    //   delay * offset++
+    // ));
+    this.step = 0;
     // this.reelsControl[0].isSpinning = true;
     // setTimeout(() => {
     //   this.reelsControl[1].isSpinning = true;
@@ -61,7 +75,7 @@ export default class Reels {
 }
 
 class Reel {
-  constructor({ scene, x, y, spacing, infoList }) {
+  constructor({ scene, x, y, spacing, infoList, stepOffset }) {
     let offset = 0;
 
     this.items = infoList.map(info => {
@@ -79,6 +93,7 @@ class Reel {
 
     this.currentCount = COUNT_STARTS_AT;
     this.isSpinning = false;
+    this.stepOffset = stepOffset;
   }
 
   start() {
@@ -93,9 +108,9 @@ class Reel {
 }
 
 class ReelItem {
-  constructor(image, spacing, speed=5) {
+  constructor(image, spacing, speed=18) {
     this.IMAGE = image;
-    this.TOTAL_LENGTH = (spacing - 3.3) * 20;
+    this.TOTAL_LENGTH = (spacing) * 10;
     this.SPEED = speed;
     this.START_LIMIT = -this.TOTAL_LENGTH;
     this.END_LIMIT = this.TOTAL_LENGTH;
@@ -118,21 +133,21 @@ class ReelItem {
   start() {
     this.y -= this.SPEED;
     if (this.y < this.START_LIMIT) {
-      this.y = this.END_LIMIT;
+      this.y += this.END_LIMIT * 2;
     }
   }
 
   stop() {
     this.y -= this.SPEED;
     if (this.y >= this.END_LIMIT + this.SPEED) {
-      this.y = this.START_LIMIT;
+      this.y -= -this.START_LIMIT * 2;
     }
   }
 
   move() {
-    this.y += 20;
+    this.y += this.SPEED;
     if (this.y >= this.END_LIMIT + this.SPEED) {
-      this.y = this.START_LIMIT;
+      this.y -= -this.START_LIMIT * 2;
     }
   }
 }
