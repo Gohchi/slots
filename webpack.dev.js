@@ -17,8 +17,8 @@ module.exports = merge(common, {
     // static: {
     //   directory: path.join(__dirname, 'public'),
     // },
-    // compress: true,
-    // port: 3000,
+    compress: true,
+    port: 3000,
   },
   plugins: [
     definePlugin,

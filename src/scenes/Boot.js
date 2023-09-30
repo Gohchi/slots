@@ -1,6 +1,25 @@
 import Phaser from 'phaser'
 // import WebFont from 'webfontloader'
 import { windowWidth, windowHeight } from '../config'
+import casinoNightZoneMp3 from '../assets/audio/songs/CasinoNightZone.mp3';
+import ringLossMp3 from '../assets/audio/sonic_losing_rings.mp3';
+import ringWav from '../assets/audio/S3K_33.wav';
+import errorWav from '../assets/audio/S3K_B2.wav';
+import continueWav from '../assets/audio/S3K_AC.wav';
+import spinWav from '../assets/audio/S3K_53.wav';
+import bgCasinoPng from '../assets/bg/casino.png';
+import framePng from '../assets/frame.png';
+import jackPotPng from '../assets/symbols/sonic_sym_a.png';
+import sonicFacePng from '../assets/symbols/sonic_sym_b.png';
+import tailsFacePng from '../assets/symbols/sonic_sym_c.png';
+import knucklesFacePng from '../assets/symbols/sonic_sym_d.png';
+import ringPng from '../assets/symbols/sonic_sym_e.png';
+import line1Png from '../assets/line_1.png';
+import line4Png from '../assets/line_4.png';
+import line5Png from '../assets/line_5.png';
+import prizeWindowPng from '../assets/prize_window.png';
+import buttonSpinPng from '../assets/btn_spin.png';
+
 
 export default class extends Phaser.Scene {
   constructor () {
@@ -52,42 +71,42 @@ export default class extends Phaser.Scene {
 
     // this.load.setBaseURL('http://localhost:8080');
 
-    this.load.image('bg', 'assets/frame.png');
-    this.load.image('prize', 'assets/prize_window.png');
-    this.load.image('spin', 'assets/btn_spin.png');
-    this.load.image('line1', 'assets/line_1.png');
-    this.load.image('line4', 'assets/line_4.png');
-    this.load.image('line5', 'assets/line_5.png');
+    this.load.image('bg', framePng);
+    this.load.image('prize', prizeWindowPng);
+    this.load.image('spin', buttonSpinPng);
+    this.load.image('line1', line1Png);
+    this.load.image('line4', line4Png);
+    this.load.image('line5', line5Png);
     
-    this.load.image('a', 'assets/symbols/sonic_sym_a.png');
-    this.load.image('b', 'assets/symbols/sonic_sym_b.png');
-    this.load.image('c', 'assets/symbols/sonic_sym_c.png');
-    this.load.image('d', 'assets/symbols/sonic_sym_d.png');
-    this.load.image('e', 'assets/symbols/sonic_sym_e.png');
+    this.load.image('a', jackPotPng);
+    this.load.image('b', sonicFacePng);
+    this.load.image('c', tailsFacePng);
+    this.load.image('d', knucklesFacePng);
+    this.load.image('e', ringPng);
 
     
-    this.load.audio('ring', 'assets/audio/S3K_33.wav', {
+    this.load.audio('ring', ringWav, {
       instances: 1
     });
-    this.load.audio('continue', 'assets/audio/S3K_AC.wav', {
+    this.load.audio('continue', continueWav, {
       instances: 1
     });
-    this.load.audio('error', 'assets/audio/S3K_B2.wav', {
+    this.load.audio('error', errorWav, {
       instances: 1
     });
-    this.load.audio('ring-loss', 'assets/audio/sonic_losing_rings.mp3', {
+    this.load.audio('ring-loss', ringLossMp3, {
       instances: 1
     });
-    this.load.audio('spin', 'assets/audio/S3K_53.wav', {
-      instances: 1
-    });
-
-    this.load.audio('song-casino-night', 'assets/audio/songs/CasinoNightZone.mp3', {
+    this.load.audio('spin', spinWav, {
       instances: 1
     });
 
+    this.load.audio('song-casino-night', casinoNightZoneMp3, {
+      instances: 1
+    });
+
     
-    this.load.image('bg-casino', 'assets/bg/casino.png');
+    this.load.image('bg-casino', bgCasinoPng);
   }
   
   update () {
