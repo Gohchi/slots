@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
-import { windowWidth, windowHeight, gameWidth, gameHeight } from '../config'
-import { checkStates, saveState, dateAsString, drawFrame, addButton } from '../utils/tools'
+import { windowWidth, windowHeight, gameWidth, gameHeight, viewMode } from '../config'
+import { checkStates, saveState, dateAsString, drawFrame, addButton, getStyles, padZero } from '../utils/tools'
 import Wrapper from '../lib/api.engine'
 import Reels from '../components/Reels/Reels';
 // import ScrollingBackground from '../utils/ScrollingBackground'
@@ -9,8 +9,8 @@ import Reels from '../components/Reels/Reels';
 // import Enemy from '../sprites/Enemy'
 let wrapper = new Wrapper();
 
-const DEBUG = false;
-
+const DEBUG = true;
+const STYLES = getStyles();
 
 export default class extends Phaser.Scene {
   constructor() {
@@ -47,7 +47,7 @@ export default class extends Phaser.Scene {
     }
   }
 
-  create() {
+  initSounds() {
     //#region sounds
     if (!DEBUG) {
       this.song = this.sound.add('song-casino-night', {volume: 0.5});
@@ -57,7 +57,9 @@ export default class extends Phaser.Scene {
     this.soundError = this.sound.add('error', { volume: 0.5 });
     this.soundSpin = this.sound.add('spin', { volume: 0.1 });
     //#endregion
+  }
 
+  initBackground() {
     //#region background
     if (!DEBUG) {
       this.background = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, "bg-casino")
@@ -69,11 +71,98 @@ export default class extends Phaser.Scene {
       }, 60);
     }
     //#endregion
+  }
+
+  initFrame() {
+    const { x, y, w, h } = this.cameraInfo;
+    drawFrame(this.graphics, x, y, w, h);
+  }
+  
+  initReels(spacing) {
+    return new Reels({
+      scene: this,
+      x: this.xOutsideOffset,
+      y: this.yOutsideOffset - spacing * 10,
+      spacing,
+      data: wrapper.getReels()
+    });
+  }
+
+  initCursors() {
+    return this.input.keyboard.createCursorKeys();
+  }
+
+  initCameras(spacing) {
+    const { x, y, w, h } = this.cameraInfo;
+
+    this.cameras
+      .add(x, y, w, h)
+      .setScroll(this.xOutsideOffset - 76, this.yOutsideOffset - (spacing / 2));
+  }
+
+  initDebug() {
+    const { x, y, w, h } = {
+      x: 980, y: 30, w: 400, h: 700
+    };
+    // debug camera
+    this.cameras.add(x, y, w, h)
+      .setOrigin(0)
+      .setScroll(this.xOutsideOffset -76, -1750)
+      .setZoom(.2);
+
+    const graphics = this.graphics;
+    graphics.lineStyle(2, 0xaf4f00);
+    graphics.strokeRect(x, y, w, h);
+  }
+
+  initEvents() {
+    this.input.on('pointerdown', () => this.doSpin());
+  }
+
+  addTexts() {
+    this.spinInfo = this.add.text(
+      10, 10,
+      DEBUG ? `${viewMode}: ${windowWidth}` : "TAP EVERYWHERE TO SPIN",
+      STYLES["title"]
+    );
+    
+    this.prizeText = this.add.text(114, gameHeight - 47, this.baseText + padZero(this.points, 10), STYLES["prize"]);
+
+    this.currentPrizeText = this.add.text(28, gameHeight - 52, "", STYLES["currentPrize"]);
+  }
+
+  addPaytable() {
+    const paytableY = 20;
+    const style = STYLES["paytable"];
+
+    this.paytableText = this.add.text(windowWidth - 10, paytableY, "PAY TABLE", style);
+    
+    wrapper.PAYTABLE.forEach(({ symbol, prize }, i) => {
+      const yPos = 75 * (i - 1) + 120 + paytableY;
+
+      const { x, y } = this.add.image(windowWidth - 80, yPos, symbol).setOrigin(0).setScale(2);
+
+      this.add.text(x - 20, y + 20, prize, style);
+    });
+  }
+
+  addUserInfo() {
+    this.startDateText = this.add.text(
+      windowWidth - 10, windowHeight - 30,
+      "Start date: " + dateAsString(this.startDate),
+      {...STYLES["paytable"], fontSize: '18px' }
+    );
+  }
+
+  create() {
+    this.initSounds();
+    this.initBackground();
 
     this.centerX = gameWidth / 2;
 
     this.graphics = this.add.graphics();
-    drawFrame(this.graphics, this.cameraInfo.x, this.cameraInfo.y, this.cameraInfo.w, this.cameraInfo.h);
+    
+    this.initFrame();
 
     this.bgHeight = gameWidth; // bg.height;
 
@@ -81,87 +170,29 @@ export default class extends Phaser.Scene {
     this.frameContentSizeFix = this.frameContentSize / 3 / 2;
 
     const spacing = 144;
-    this.reels = new Reels({
-      scene: this,
-      x: this.xOutsideOffset,
-      y: this.yOutsideOffset - spacing * 10,
-      spacing,
-      data: wrapper.getReels()
-    });
+    this.reels = this.initReels(spacing);
 
-    this.cursors = this.input.keyboard.createCursorKeys();
+    this.cursors = this.initCursors();
 
-    this.cameras
-      .add(this.cameraInfo.x, this.cameraInfo.y, this.cameraInfo.w, this.cameraInfo.h)
-      .setScroll(this.xOutsideOffset - 76, this.yOutsideOffset - (spacing / 2));
+    this.initCameras(spacing);
 
+    //#region hud
     if (DEBUG) {
-      const { x, y, w, h } = {
-        x: 980, y: 30, w: 400, h: 700
-      };
-      // debug camera
-      this.cameras.add(x, y, w, h)
-        .setOrigin(0)
-        .setScroll(this.xOutsideOffset -76, -1750)
-        .setZoom(.2);
-
-      const graphics = this.graphics;
-      graphics.lineStyle(2, 0xaf4f00);
-      graphics.strokeRect(x, y, w, h);
+      this.initDebug();
     }
     //debug
     // this.cameras.add(0, 0, 100, 30 * 20).setScroll(-300, -1200).setZoom(0.2);
 
-    //#region info
-    this.spinInfo = this.add.text(10, 10, "TAP EVERYWHERE TO SPIN", {
-      fill: '#FFFFFF',
-      fontFamily: 'Arial',
-      fontSize: '22px',
-      fontStyle: 'bold'
-    });
-
     addButton(this, this.graphics, 16, gameHeight - 50, 360, 35);
 
-    this.prizeText = this.add.text(114, gameHeight - 47, this.baseText + this.padZero(this.points, 10), {
-      fill: '#1b3768',
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      fontStyle: 'bold',
-      align: 'center'
-    });
+    this.addTexts();
 
-    this.currentPrizeText = this.add.text(28, gameHeight - 52, "", {
-      fontFamily: 'Arial',
-      fill: '#FF911D',
-      fontSize: '32px',
-      fontStyle: 'bold'
-    });
+    this.addPaytable();
 
-    // paytable
-    const style = {
-      fill: '#FFFFFF',
-      fontFamily: 'Arial',
-      fontSize: '22px',
-      fontStyle: 'bold',
-      rtl: true
-    };
-    const paytableY = 20;
-    this.paytableText = this.add.text(windowWidth - 10, paytableY, "PAY TABLE", style)
-    wrapper.PAYTABLE.forEach((o, i) => {
-      let yPos = 75 * (i - 1) + 120 + paytableY;
-      let img = this.add.image(windowWidth - 80, yPos, o.symbol).setOrigin(0).setScale(2);
-      this.add.text(img.x - 20, img.y + 20, o.prize, style)
-    })
-
-    // user info
-    const startDate = dateAsString(this.startDate)
-    this.startDateText = this.add.text(windowWidth - 10, windowHeight - 30, "Start date: " + startDate, Object.assign({}, style, { fontSize: '18px' }))
-
+    this.addUserInfo();
     //#endregion
 
-    //#region events
-    this.input.on('pointerdown', () => this.doSpin());
-    //#endregion
+    this.initEvents();
   }
   
   update() {
@@ -216,7 +247,7 @@ export default class extends Phaser.Scene {
         // }
 
         this.prizeText
-          .setText(this.baseText + this.padZero(this.points, 10));
+          .setText(this.baseText + padZero(this.points, 10));
         //#endregion
 
         this.spinning = false;
@@ -240,13 +271,5 @@ export default class extends Phaser.Scene {
   spin() {
     this.spinning = true;
     this.reels.spin(this.lastResults.reelsLayout);
-  }
-
-
-  padZero(n, len = 2) {
-    return ('0'.repeat(len) + n).slice(-len);
-  }
-  getIndex(reel) {
-    return Math.floor((reel.y + 2305) / 140);
   }
 }

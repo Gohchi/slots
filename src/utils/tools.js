@@ -186,3 +186,49 @@ export const addButton = (scope, graphics, x, y, w, h, buttonInfo) => {
 export const getRandomColor = () => {
   return parseInt(((1 << 24) * Math.random() | 0).toString(16).padStart(6, "0"), 16);
 }
+
+export function padZero(n, len = 2) {
+  return ('0'.repeat(len) + n).slice(-len);
+}
+
+// export function getIndex({ y }) {
+//   return Math.floor((y + 2305) / 140);
+// }
+
+export const getStyles = () => {
+  const _arial = {
+    fontFamily: 'Arial',
+    fontStyle: 'bold'
+  };
+  
+  const title = {
+    ..._arial,
+    fill: '#FFFFFF',
+    fontSize: '22px'
+  };
+
+  const paytable = {
+    ...title,
+    rtl: true
+  };
+
+  const prize = {
+    ..._arial,
+    fill: '#1b3768',
+    fontSize: '24px',
+    align: 'center'
+  };
+
+  const currentPrize = {
+    ..._arial,
+    fill: '#FF911D',
+    fontSize: '32px'
+  };
+
+  return {
+    title,
+    paytable,
+    prize,
+    currentPrize
+  };
+}
