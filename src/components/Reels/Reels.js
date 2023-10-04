@@ -14,6 +14,7 @@ export default class Reels {
 
     this.scene = scene;
     this.spinOffset = 18;
+    this.spacing = spacing;
   }
   
 

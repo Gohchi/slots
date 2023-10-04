@@ -62,7 +62,15 @@ export const dateAsString = date => {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  return `${date.getFullYear().toString().substring(2, 4)}/${pad(date.getMonth())}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+
+  const year = date.getFullYear();
+  const month = pad(date.getMonth());
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
 }
 
 export const pad = value => value.toString().padStart(2, 0);
@@ -71,7 +79,7 @@ export const pad = value => value.toString().padStart(2, 0);
 // }
 
 export const drawFrame = (graphics, x, y, w, h) => {
-  let cx = x, cy = y - 9, cw = w, ch = h + 14;
+  let cx = x, cy = y - 9, cw = w + 18, ch = h + 14;
 
   graphics.lineStyle(2, 0xffffff, 1);
   let xo = 6, limit = cw * 0.1 + 3;
@@ -209,7 +217,7 @@ export const getStyles = () => {
 
   const paytable = {
     ...title,
-    rtl: true
+    align: 'center'
   };
 
   const prize = {
@@ -225,10 +233,19 @@ export const getStyles = () => {
     fontSize: '32px'
   };
 
+  const userInfo = {
+    ...title,
+    fontSize: '18px',
+    wordWrap: {
+      width: 176
+    }
+  }
+
   return {
     title,
     paytable,
     prize,
-    currentPrize
+    currentPrize,
+    userInfo
   };
 }

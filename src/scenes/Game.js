@@ -4,6 +4,7 @@ import { windowWidth, windowHeight, gameWidth, gameHeight, viewMode } from '../c
 import { checkStates, saveState, dateAsString, drawFrame, addButton, getStyles, padZero } from '../utils/tools'
 import Wrapper from '../lib/api.engine'
 import Reels from '../components/Reels/Reels';
+import { LANDSCAPE } from '../consts';
 // import ScrollingBackground from '../utils/ScrollingBackground'
 // import Player from '../sprites/Player'
 // import Enemy from '../sprites/Enemy'
@@ -29,7 +30,7 @@ export default class extends Phaser.Scene {
     }
 
     this.baseText = 'SCORE: $';
-    const wh = 430;
+    const wh = viewMode === LANDSCAPE ? 430 : windowWidth - 38;
     this.xOutsideOffset = -400;
     this.yOutsideOffset = 0;
     this.frameContentMargin = 25;
@@ -78,7 +79,9 @@ export default class extends Phaser.Scene {
     drawFrame(this.graphics, x, y, w, h);
   }
   
-  initReels(spacing) {
+  initReels() {
+    const spacing = viewMode === LANDSCAPE ? 150 : windowWidth / 3.4;
+    
     return new Reels({
       scene: this,
       x: this.xOutsideOffset,
@@ -126,31 +129,43 @@ export default class extends Phaser.Scene {
       STYLES["title"]
     );
     
-    this.prizeText = this.add.text(114, gameHeight - 47, this.baseText + padZero(this.points, 10), STYLES["prize"]);
+    this.prizeText = this.add.text(28, gameHeight - 47, this.baseText + padZero(this.points, 10), STYLES["prize"]);
 
-    this.currentPrizeText = this.add.text(28, gameHeight - 52, "", STYLES["currentPrize"]);
+    this.currentPrizeText = this.add.text(272, gameHeight - 52, "", STYLES["currentPrize"]);
   }
 
   addPaytable() {
-    const paytableY = 20;
+    const paytableY = viewMode === LANDSCAPE ? 20 : windowWidth + 44;
+    const paytableX = viewMode === LANDSCAPE ? windowWidth - 10 : 10;
     const style = STYLES["paytable"];
 
-    this.paytableText = this.add.text(windowWidth - 10, paytableY, "PAY TABLE", style);
+    this.paytableText = this.add.text(paytableX, paytableY, "PAY TABLE", STYLES["title"]);
     
     wrapper.PAYTABLE.forEach(({ symbol, prize }, i) => {
-      const yPos = 75 * (i - 1) + 120 + paytableY;
+      if (viewMode === LANDSCAPE) {
+        const yPos = 75 * (i - 1) + 120 + paytableY;
 
-      const { x, y } = this.add.image(windowWidth - 80, yPos, symbol).setOrigin(0).setScale(2);
+        const { x, y } = this.add.image(windowWidth - 80, yPos, symbol).setOrigin(0).setScale(2);
 
-      this.add.text(x - 20, y + 20, prize, style);
+        this.add.text(x - 20, y + 20, prize, style);
+      } else {
+        const xPos = (windowWidth / 5) * (i - 1) + 82;
+        
+        const { x, y } = this.add.image(xPos, paytableY + 30, symbol).setOrigin(0).setScale(2);
+        
+        this.add.text(x + 32, y + 84, prize, style).setOrigin(0.5);
+        // this.graphics.fillStyle(0xFF3333, 0.6);
+        // this.graphics.fillRect(x + 32, y + 84, 40, 40);
+      }
     });
   }
 
   addUserInfo() {
     this.startDateText = this.add.text(
-      windowWidth - 10, windowHeight - 30,
+      windowWidth - 186,
+      windowHeight - (viewMode === LANDSCAPE ? 50 : 106),
       "Start date: " + dateAsString(this.startDate),
-      {...STYLES["paytable"], fontSize: '18px' }
+      STYLES["userInfo"]
     );
   }
 
@@ -169,12 +184,11 @@ export default class extends Phaser.Scene {
     this.frameContentSize = this.bgHeight - this.frameContentMargin * 2;
     this.frameContentSizeFix = this.frameContentSize / 3 / 2;
 
-    const spacing = 144;
-    this.reels = this.initReels(spacing);
+    this.reels = this.initReels();
 
     this.cursors = this.initCursors();
 
-    this.initCameras(spacing);
+    this.initCameras(this.reels.spacing);
 
     //#region hud
     if (DEBUG) {
@@ -183,7 +197,7 @@ export default class extends Phaser.Scene {
     //debug
     // this.cameras.add(0, 0, 100, 30 * 20).setScroll(-300, -1200).setZoom(0.2);
 
-    addButton(this, this.graphics, 16, gameHeight - 50, 360, 35);
+    addButton(this, this.graphics, 16, gameHeight - 50, viewMode === LANDSCAPE ? 360 : windowWidth - 30, 35);
 
     this.addTexts();
 
@@ -231,7 +245,7 @@ export default class extends Phaser.Scene {
         this.points += this.lastResults.winnings;
         saveState({ points: this.points });
         this.currentPrizeText
-          .setText("$ " + this.lastResults.winnings)
+          .setText(" + " + this.lastResults.winnings)
           .setFill(this.lastResults.winnings ? '#FF911D' : '#5C5C5C');
         this.soundSpin.stop();
         if (this.lastResults.winnings)
